@@ -1,0 +1,37 @@
+/*****************************************************************************
+ Project:  
+ FileName: Posstest3.pro
+ Purpose: 
+ Written by: Aris Munandar
+ Modifyed by: Aris Munandar
+ Comments: 19-mar-2017
+******************************************************************************/
+
+
+domains
+%sa = nama, p = post
+sa,p=symbol
+
+predicates
+nondeterm post(p,sa,sa,sa,sa,sa,sa)
+nondeterm post(p,sa,sa,sa)
+nondeterm ma_pagi(sa,sa,sa,sa)
+nondeterm ma_sore(sa,sa,sa,sa)
+nondeterm ma_malam(sa,sa,sa,sa)
+
+clauses
+post(rumah,sate,bakso,soto,gadogado,nasicampur,nasipecel).
+post(makan1,sate,bakso,nasipecel).
+post(makan2,gadogado,nasicampur,soto).
+ma_pagi(gadogado,nasicampur,nasipecel,soto).
+ma_sore(sate,bakso,soto,nasicampur).
+ma_malam(bakso,soto,sate,nasicampur).
+
+goal
+write("Makanan yang di sediakan : "),nl,post(rumah,SA1,SA2,SA3,SA4,SA5,SA6);
+nl,write("Rumah makan 1 menyediakan : "),nl,post(makan1,SA1,SA2,SA3);
+nl,write("Rumah makan 2 menyediakan : "),nl,post(makan2,SA1,SA2,SA3);
+nl,write("Makanan paginya : "),nl,ma_pagi(SA1,SA2,SA3,SA4);
+nl,write("Makanan sorenya : "),nl,ma_sore(SA1,SA2,SA3,SA4);
+nl,write("Makanan malamnya : "),nl,ma_malam(SA1,SA2,SA3,SA4);
+nl,write("Makanan yang terenak :"),nl,post(_,SA1,SA2,SA3),post(_,SA1,SA2,SA3).
