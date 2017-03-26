@@ -1,0 +1,120 @@
+/*****************************************************************************
+
+		Copyright (c) 1984 - 2000 Prolog Development Center A/S
+
+ Project:  
+ FileName: CH04E12.PRO
+ Purpose: 
+ Written by: PDC
+ Modifyed by: Eugene Akimov
+ Comments: 
+******************************************************************************/
+
+trace
+domains /* berisi deklarasi (pernyataan) tentang jenis data yang akan digunakan dalam fakta dan aturan. didalam program ini memakai jenis data symbol*/
+  name,sex,occupation,object,vice,substance = symbol /* karena symbol sebagai kumpulan karakter atau dengan huruf kecil. dan memakai jenis data integer karena memakai angka. */
+  age=integer
+
+predicates
+  person(name,age,sex,occupation) - nondeterm (o,o,o,o), nondeterm (i,o,o,i), nondeterm (i,o,i,o) /* sebagai nama simbolik untuk relasi dan kata nondeterm ini berfungsi untuk memberitahu bahwa predikat tersebut mempunyai lebih dari kemungkinan jawaban. */
+  had_affair(name,name) - nondeterm (i,i), nondeterm (i,o)/* didalam predicate diawali dengan huruf kecil dan dapat diikuti oleh huruf,bilangan, atau garis bawah, dan tidak menggunakan spasi,tanda bintang, tanda minus atau garis miring*/
+  killed_with(name,object) - determ (i,o)
+  killed(name) - procedure (o)
+  killer(name) - nondeterm (o)
+  motive(vice) - nondeterm (i)
+  smeared_in(name,substance) - nondeterm (i,o), nondeterm (i,i)
+  owns(name,object) - nondeterm (i,i)
+  operates_identically(object,object) - nondeterm (o,i)
+  owns_probably(name,object) - nondeterm (i,i)
+  suspect(name) - nondeterm (i)
+
+/* * * Fakta-fakta tentang pembunuhan * * */
+clauses
+  person(bert,55,m,carpenter). /* disini menjelaskan bahwa bert adalah orang berumur 55 gender laki-laki dan pekerjaan tukang kayu.*/
+  person(allan,25,m,football_player). /*disini menjelaskan allan adalah orang berumur 25, gender laki-laki dan pekerjaan pemain sepak bola.*/
+  person(allan,25,m,butcher). /*allan adalah orang berumur 25, gender laki-laki dan pekerjaannya pengawas.*/
+  person(john,25,m,pickpocket). /*john adalah orang berumur 25, bergender laki-laki dan pekerjaan pencopet.*/
+
+  had_affair(barbara,john)./*disini menjelaskan bahwa barbara selingkuh dengan john*/
+  had_affair(barbara,bert)./*barbara selingkuh dengan bert.*/
+  had_affair(susan,john)./*susan selingkuh dengan john*/
+
+  killed_with(susan,club)./*susan terbunuh dengan pentungan.*/
+  killed(susan)./*susan yang terbunuh*/
+
+  motive(money)./*motifnya adalah uang*/
+  motive(jealousy)./*motifnya adalah cemburu*/
+  motive(righteousness)./*motifnya adalah dendam*/
+
+  smeared_in(bert,blood)./*bert ternodai darah.*/
+  smeared_in(susan,blood)./*susan ternodai darah.*/
+  smeared_in(allan,mud)./*allan ternodai lumpur*/
+  smeared_in(john,chocolate)./*john ternodai coklat*/
+  smeared_in(barbara,chocolate)./*barbara ternodai coklat*/
+
+  owns(bert,wooden_leg)./*bert memiliki kaki palsu*/
+  owns(john,pistol)./*john memiliki pistol*/
+
+	/* * * Basis Pengetahuan * * */
+
+  operates_identically(wooden_leg, club)./*kaki palsu cara kerja mirip pentungan*/
+  operates_identically(bar, club)./* balok palsu cara kerja mirip pentungan*/
+  operates_identically(pair_of_scissors, knife)./*gunting cara kerjanya mirip pisau*/
+  operates_identically(football_boot, club)./*sepak bola cara kerjanya mirip pentungan*/
+
+  owns_probably(X,football_boot):-/*X kemungkinan milik sepak bola*/
+	person(X,_,_,football_player)./*X orang yang pemain sepak bola*/
+  owns_probably(X,pair_of_scissors):- /*X kemungkinan milik gunting*/
+	person(X,_,_,hairdresser)./*X orang pekerja salon*/
+  owns_probably(X,Object):-/*X kemungkinan milik benda*/
+	owns(X,Object)./*X milik benda*/
+
+/* * * * * * * * * * * * * * * * * * * * * * *
+ * dicurigai semua orang yang memiliki senjata yang *
+ * kerjanya mirip dengan senjata penyebab susan terbunuh. *
+ * * * * * * * * * * * * * * * * * * * * * * */
+
+  suspect(X):-/*siapa yang dicurigai*/
+	killed_with(susan,Weapon) ,/*Susan terbunuh dengan senjata*/
+	operates_identically(Object,Weapon) ,/*benda cara kerjanya mirip senjata*/
+	owns_probably(X,Object)./*dan X kemungkinan miliki benda*/
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * *
+ * dicurigai laki-laki yang selingkuh dengan Susan.  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+  suspect(X):-/*siapa yang dicurigai*/
+	motive(jealousy),/*cemburu adalah motifnya*/
+	person(X,_,m,_),/*siapa orangnya */
+	had_affair(susan,X)./*Susan selingkuh dengan siapa*/
+
+/* * * * * * * * * * * * * * * * * * * * *
+ * dicurigai perempuan yang selingkuh dengan  *
+ * laki-laki yang juga selingkuh dengan Susan  *
+ * * * * * * * * * * * * * * * * * * * * */
+
+  suspect(X):-/*siapa yang dicurigai*/
+	motive(jealousy),/*cemburu adalah motifnya*/
+	person(X,_,f,_),/*siapa orangnya */
+	had_affair(X,Man),/*siapa selingkuhanya laki-laki*/
+	had_affair(susan,Man)./*siapa orang yang pencopet*/
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * dicurigai pencopet yang mempunyai motif uang.  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+  suspect(X):-/*siapa yang dicurigai*/
+	motive(money),/*uang adalah motifnya*/
+	person(X,_,_,pickpocket)./*siapa orang yang pencopet*/
+
+  killer(Killer):-
+	person(Killer,_,_,_),
+	killed(Killed),
+	Killed <> Killer, /* Bukan bunuh diri */
+	suspect(Killer),
+	smeared_in(Killer,Goo),/*pembunuh ternodai dengan zat  dan*/
+	smeared_in(Killed,Goo)./*terbunuh ternodai dengan zat*/
+
+goal/* berisi pernyataan yang diajukan kepada turbo prolog. bagian goal ini hanya dituliskan menggunakan kata tunggal, karena hanya boleh ada sebuah goal. */
+  killer(X)./* goal dapat terdiri dari beberapa subgoal. suatu pernyataan baik fakta,relasi atau goal dikatakan satu apabila diakhiri dengan tanda titik. jadi pada bagian*/
+				 /*  goal ini menanyakan tentang siapa pembunuhnya yaitu dengan bahasa pembunuh(X) dan pembunuhnya adalah bert.*/
